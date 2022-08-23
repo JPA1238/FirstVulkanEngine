@@ -1,5 +1,7 @@
 #version 450
 
+layout (location = 0) out vec3 outColor;
+
 void main () {
 	const vec3 positions[3] = vec3[3] (
 		vec3(1.f, 1.f, 0.f),
