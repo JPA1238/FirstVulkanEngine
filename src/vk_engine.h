@@ -18,6 +18,7 @@
 
 // variable
 constexpr unsigned int FRAME_OVERLAP = 3;
+const unsigned int MAX_OBJECTS = 50000;
 
 // structs
 struct DeletionQueue {
@@ -59,7 +60,7 @@ struct FrameData {
 	VkCommandPool _commandPool;
 	VkCommandBuffer _mainCommandBuffer;
 
-	AllocatedBuffer cameraBuffer;
+	AllocatedBuffer frameDataBuffer; // cam + scene buffer
 	AllocatedBuffer objectBuffer;
 
 	VkDescriptorSet globalDescriptor;
@@ -72,16 +73,16 @@ struct GPUCameraData {
 	glm::mat4 viewproj;
 };
 
-struct GPUObjectData {
-	glm::mat4 modelMatrix;
-};
-
 struct GPUSceneData {
 	glm::vec4 fogColor;	// w for exponent
 	glm::vec4 fogDistance;	// x for min, y for max, zw unused
 	glm::vec4 ambientColor;
 	glm::vec4 sunlightDirection; // w for power
 	glm::vec4 sunlightColor;
+};
+
+struct GPUObjectData {
+	glm::mat4 modelMatrix;
 };
 
 class VulkanEngine {
@@ -126,7 +127,7 @@ public:
 	std::vector<VkFramebuffer> _framebuffers;
 
 	GPUSceneData _sceneParameters;
-	AllocatedBuffer _sceneParameterBuffer;
+	// AllocatedBuffer _sceneParameterBuffer;
 
 	VkDescriptorPool _descriptorPool;
 	
