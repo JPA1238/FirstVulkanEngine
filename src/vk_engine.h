@@ -6,15 +6,17 @@
 // std lib
 #include <vector>
 #include <deque>
+#include <string>
 #include <functional>
 #include <unordered_map>
 
 // own lib
-#include <vk_types.h>
-#include <vk_mesh.h>
+#include "vk_types.h"
+#include "vk_mesh.h"
 
 // 3rd party lib
-#include <glm/glm.hpp>
+#include "glm/mat4x4.hpp"
+#include "glm/vec4.hpp"
 
 // variable
 constexpr unsigned int FRAME_OVERLAP = 3;
@@ -93,7 +95,7 @@ public:
 	glm::vec3 _camPos = {0.0f, 0.0f, 0.0f};
 
 	VkExtent2D _windowExtent{ 1700 , 900 };
-	struct SDL_Window* _window{ nullptr };
+	struct GLFWwindow* _window{ nullptr };
 	void init();
 	void run();
 	void draw();

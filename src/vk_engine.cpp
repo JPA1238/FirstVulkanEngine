@@ -8,8 +8,8 @@
 #include <numeric>
 
 // own lib
-#include <vk_types.h>
-#include <vk_initializers.h>
+#include "vk_types.h"
+#include "vk_initializers.h"
 
 // 3rd party lib
 #define VMA_IMPLEMENTATION
@@ -17,10 +17,10 @@
 
 #include <glm/gtx/transform.hpp>
 
-#include <SDL.h>
-#include <SDL_vulkan.h>
-
 #include "VkBootstrap.h"
+
+#define GFLW_INCLUDE_VULKAN
+#include<GLFW/glfw3.h>
 
 using namespace std;
 #define VK_CHECK(x)                                            \
@@ -36,22 +36,14 @@ using namespace std;
 
 void VulkanEngine::init()
 {
-	// We initialize SDL and create a window with it.
-	SDL_Init(SDL_INIT_VIDEO);
+	glfwInit();
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	_window = glfwCreateWindow(_windowExtent.width, _windowExtent.height, "Vulkan Engine", nullptr, nullptr);
 
-	SDL_WindowFlags window_flags = (SDL_WindowFlags)(SDL_WINDOW_VULKAN);
 
-	_window = SDL_CreateWindow(
-		"Vulkan Engine",
-		SDL_WINDOWPOS_UNDEFINED,
-		SDL_WINDOWPOS_UNDEFINED,
-		_windowExtent.width,
-		_windowExtent.height,
-		window_flags);
-
-	_meshFiles["monkey"] = "../../assets/monkey_smooth.obj";
-	_meshFiles["triangle"] = "../../assets/triangle.obj";
-	// _meshFiles["lost_empire"] = "../../assets/lost_empire.obj";
+	_meshFiles["monkey"] = "assets/monkey_smooth.obj";
+	_meshFiles["triangle"] = "assets/triangle.obj";
+	// _meshFiles["lost_empire"] = "assets/lost_empire.obj";
 
 	init_vulkan();
 	init_swapchain();
@@ -70,11 +62,6 @@ void VulkanEngine::init()
 
 void VulkanEngine::run()
 {
-	// rewrite to SDL_GetKeyboardState()
-
-	SDL_Event e;
-	bool bQuit = false;
-
 	auto preMillis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 	auto newMillis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
@@ -85,31 +72,32 @@ void VulkanEngine::run()
 	int FPS[AVGCOUNT];
 
 	// main loop
-	while (!bQuit)
+	while (!glfwWindowShouldClose(_window))
 	{
-		const Uint8 *keyState = SDL_GetKeyboardState(NULL);
+		glfwPollEvents();
 
-		if (keyState[SDL_SCANCODE_A])
+
+		if (glfwGetKey(_window, GLFW_KEY_A))
 		{
 			_camPos.x += CAMSPEED;
 		}
-		else if (keyState[SDL_SCANCODE_D])
+		else if (glfwGetKey(_window, GLFW_KEY_D))
 		{
 			_camPos.x -= CAMSPEED;
 		}
-		if (keyState[SDL_SCANCODE_LCTRL])
+		if (glfwGetKey(_window, GLFW_KEY_LEFT_CONTROL))
 		{
 			_camPos.y += CAMSPEED;
 		}
-		else if (keyState[SDL_SCANCODE_SPACE])
+		else if (glfwGetKey(_window, GLFW_KEY_SPACE))
 		{
 			_camPos.y -= CAMSPEED;
 		}
-		if (keyState[SDL_SCANCODE_W])
+		if (glfwGetKey(_window, GLFW_KEY_W))
 		{
 			_camPos.z += CAMSPEED;
 		}
-		else if (keyState[SDL_SCANCODE_S])
+		else if (glfwGetKey(_window, GLFW_KEY_S))
 		{
 			_camPos.z -= CAMSPEED;
 		}
@@ -117,16 +105,6 @@ void VulkanEngine::run()
 		newMillis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		keyPull[_frameNumber % AVGCOUNT] = (int)(newMillis - preMillis);
 		preMillis = newMillis;
-
-		// Handle events on queue
-		while (SDL_PollEvent(&e) != 0)
-		{
-			// close the window when user alt-f4s or clicks the X button
-			if (e.type == SDL_QUIT)
-			{
-				bQuit = true;
-			}
-		}
 
 		newMillis = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		eventPull[_frameNumber % AVGCOUNT] = (int)(newMillis - preMillis);
@@ -267,8 +245,10 @@ void VulkanEngine::init_vulkan()
 
 	// --- Get the device ---
 
-	// get window surface from SDL
-	SDL_Vulkan_CreateSurface(_window, _instance, &_surface);
+	// get window surface from glfw
+	if (glfwCreateWindowSurface(_instance, _window, nullptr, &_surface) != VK_SUCCESS) {
+		throw std::runtime_error("failed to create window surface");
+	};
 
 	// select GPU
 	vkb::PhysicalDeviceSelector selector{vkb_inst};
@@ -618,7 +598,7 @@ void VulkanEngine::init_pipelines()
 {
 	// TODO procedurally load all shaders
 	VkShaderModule meshVertShader;
-	if (!load_shader_module("../../shaders/tri_mesh.vert.spv", &meshVertShader))
+	if (!load_shader_module("shaders/tri_mesh.vert.spv", &meshVertShader))
 	{
 		std::cout << "Error when building the mesh vertex shader module" << std::endl;
 	}
@@ -628,7 +608,7 @@ void VulkanEngine::init_pipelines()
 	}
 
 	VkShaderModule coloredMeshShader;
-	if (!load_shader_module("../../shaders/default_lit.frag.spv", &coloredMeshShader))
+	if (!load_shader_module("shaders/default_lit.frag.spv", &coloredMeshShader))
 	{
 		std::cout << "Error when building the colored fragment shader module" << std::endl;
 	}
@@ -766,7 +746,8 @@ void VulkanEngine::cleanup()
 		vkb::destroy_debug_utils_messenger(_instance, _debug_messenger, nullptr);
 		vkDestroyInstance(_instance, nullptr);
 
-		SDL_DestroyWindow(_window);
+		glfwDestroyWindow(_window);
+		glfwTerminate();
 	}
 }
 
@@ -825,7 +806,7 @@ VkPipeline PipelineBuilder::build_pipeline(VkDevice device, VkRenderPass pass)
 	viewportState.pScissors = &_scissor;
 
 	// dummy color blending
-	// TODO : doesn't support transparent
+	// TODO: doesn't support transparent
 	VkPipelineColorBlendStateCreateInfo colorBlending = {};
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorBlending.pNext = nullptr;

@@ -1,6 +1,6 @@
-#include <vk_mesh.h>
+#include "vk_mesh.h"
 
-#include <tiny_obj_loader.h>
+#include "tiny_obj_loader.h"
 #include <iostream>
 
 VertexInputDescription Vertex::get_vertex_description() {

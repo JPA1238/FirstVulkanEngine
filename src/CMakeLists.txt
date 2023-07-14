@@ -1,6 +1,8 @@
+set (CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin")
 
 # Add source to this project's executable.
-add_executable(vulkan_guide
+add_executable(
+    Vulkan-Engine
     main.cpp
     vk_engine.cpp
     vk_engine.h
@@ -8,14 +10,16 @@ add_executable(vulkan_guide
     vk_initializers.cpp
     vk_initializers.h
     vk_mesh.cpp
-    vk_mesh.h)
+    vk_mesh.h
+)
 
+### LINKING ###
 
-set_property(TARGET vulkan_guide PROPERTY VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:vulkan_guide>")
-
-target_include_directories(vulkan_guide PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(vulkan_guide vkbootstrap vma glm tinyobjloader imgui stb_image)
-
-target_link_libraries(vulkan_guide Vulkan::Vulkan sdl2)
-
-add_dependencies(vulkan_guide Shaders)
+add_dependencies(Vulkan-Engine Shaders)
+target_link_libraries(Vulkan-Engine glfw)
+target_link_libraries(Vulkan-Engine Vulkan::Vulkan)
+target_link_libraries(Vulkan-Engine glm)
+target_link_libraries(Vulkan-Engine vkbootstrap)
+target_link_libraries(Vulkan-Engine tinyobjloader)
+target_link_libraries(Vulkan-Engine imgui)
+target_link_libraries(Vulkan-Engine stb_image)
