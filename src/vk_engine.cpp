@@ -578,19 +578,18 @@ void VulkanEngine::init_descriptors()
 	}
 
 	// deletion
-	for (int i = 0; i < FRAME_OVERLAP; i++)
-	{
-		_mainDeletionQueue.push_function([&]() { 
-			// vmaDestroyBuffer(_allocator, _frames[i].cameraBuffer._buffer, _frames[i].cameraBuffer._allocation); 
-			vmaDestroyBuffer(_allocator, _frames[i].frameDataBuffer._buffer, _frames[i].frameDataBuffer._allocation); 
-		});
-	}
-
 	_mainDeletionQueue.push_function([&]() {
 		// vmaDestroyBuffer(_allocator, _sceneParameterBuffer._buffer, _sceneParameterBuffer._allocation); 
 		vkDestroyDescriptorSetLayout(_device, _globalSetLayout, nullptr);
 		vkDestroyDescriptorSetLayout(_device, _objectSetLayout, nullptr);
 		vkDestroyDescriptorPool(_device, _descriptorPool, nullptr); 
+
+		for (int i = 0; i < FRAME_OVERLAP; i++)
+		{
+			// vmaDestroyBuffer(_allocator, _frames[i].cameraBuffer._buffer, _frames[i].cameraBuffer._allocation); 
+			vmaDestroyBuffer(_allocator, _frames[i].objectBuffer._buffer, _frames[i].objectBuffer._allocation); 
+			vmaDestroyBuffer(_allocator, _frames[i].frameDataBuffer._buffer, _frames[i].frameDataBuffer._allocation); 
+		}
 	});
 }
 
